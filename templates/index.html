@@ -1,49 +1,83 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Observatoriobr319</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <title>Mapa Interativo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         body {
             display: flex;
+            height: 100vh; /* Altura total da janela */
             margin: 0;
-            height: 100vh;
-        }
-        #menu {
-            width: 300px;
-            background-color: #f8f9fa;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            overflow-y: auto;
-        }
-        #map {
-            flex-grow: 1;
-            height: 100%;
-        }
-        h2 {
             font-family: Arial, sans-serif;
         }
-        form {
-            margin-bottom: 20px;
+        .sidebar {
+            width: 250px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto; /* Adiciona rolagem se o conteúdo for maior que a altura da tela */
+        }
+        .content {
+            flex-grow: 1;
+            padding: 0; /* Remove o padding para que o mapa ocupe toda a área */
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar h1 {
+            font-size: 1.5em;
+            margin-bottom: 1em;
+        }
+        .sidebar form {
+            margin-bottom: 1em;
+        }
+        .sidebar label {
+            display: block;
+            margin-bottom: 0.5em;
+        }
+        .sidebar input[type="text"],
+        .sidebar input[type="file"] {
+            width: 100%;
+            padding: 0.5em;
+            margin-bottom: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .sidebar button {
+            width: 100%;
+            padding: 0.5em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .sidebar button:hover {
+            background-color: #0056b3;
+        }
+        iframe {
+            flex-grow: 1; /* Faz o iframe crescer para ocupar o espaço disponível */
+            border: none;
         }
     </style>
 </head>
 <body>
-    <div id="menu">
-        <h2>Mapas Base</h2>
-        <form method="POST">
-            <label for="coords">Latitude e Longitude (separados por vírgula):</label>
-            <input type="text" id="coords" name="coords" required><br><br>
+    <div class="sidebar">
+        <h1>Mapa Interativo</h1>
+        <form method="POST" action="/">
+            <label for="coords">Coordenadas (lat, lon):</label>
+            <input type="text" id="coords" name="coords">
             <button type="submit">Adicionar Localização</button>
         </form>
-        <br>
-        <a href="{{ url_for('upload_file') }}">Carregar Arquivo KML</a>
+        <form method="POST" action="/upload" enctype="multipart/form-data">
+            <label for="file">Enviar Shapefile (ZIP):</label>
+            <input type="file" id="file" name="file">
+            <button type="submit">Enviar</button>
+        </form>
     </div>
-    <div id="map">
-        <iframe src="{{ url_for('static', filename='map.html') }}" width="100%" height="100%" frameborder="0"></iframe>
+    <div class="content">
+        <iframe src="{{ url_for('static', filename='map.html') }}"></iframe>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
 </body>
 </html>
