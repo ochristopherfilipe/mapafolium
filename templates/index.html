@@ -55,6 +55,7 @@
             height: 150px; /* Aumenta a altura da caixa de texto */
         }
         .sidebar button {
+            display: block;
             width: 100%;
             padding: 0.5em;
             background-color: #007bff;
@@ -129,7 +130,7 @@
                 <label for="info">Informações adicionais (Markdown):</label>
                 <textarea name="info" id="info" rows="4" cols="50"></textarea>
                 <br><br>
-                <input type="submit" value="Upload">
+                <button type="submit">Upload</button> <!-- Alterado para <button> -->
             </form>
             <h2>Coordenadas</h2>
             <ul>

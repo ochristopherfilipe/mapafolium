@@ -40,26 +40,8 @@ def index():
                         'info': info_html
                     }
                     locations.append(location)
-                    # Criar um novo mapa e adicionar as localizações e shapefiles
-                    mapa = folium.Map(location=initial_coords, zoom_start=7)
-                    folium.TileLayer("Esri.WorldImagery", name="Satélite 1").add_to(mapa)
-                    folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
-                    for loc in locations:
-                        popup_content = f"""
-                        <div class='popup-content' style='max-width:300px; max-height:200px; overflow-y:auto;'>
-                            <div class='popup-info'>{loc['info']}</div>
-                        </div>
-                        """
-                        folium.Marker(
-                            loc['coords'],  # Use loc['coords'] em vez de loc
-                            popup=folium.Popup(popup_content, max_width=300)
-                        ).add_to(mapa)
-                    for geojson_data in shapefiles:
-                        overlay = folium.FeatureGroup(name='Shapefile Overlay')
-                        folium.GeoJson(geojson_data).add_to(overlay)
-                        overlay.add_to(mapa)
-                    # Salvar o mapa atualizado
-                    mapa.save(os.path.join('static', 'map.html'))
+                    # Atualizar o mapa
+                    update_map()
             except ValueError:
                 error_message = "Formato de coordenada inválido!"
     return render_template('index.html', shapefiles=shapefiles, locations=locations, enumerate=enumerate, error_message=error_message)
@@ -92,32 +74,8 @@ def upload_file():
                 geojson_data = gdf.to_json()
                 shapefiles.append({'data': geojson_data, 'info': markdown.markdown(info)})  # Adicionar informações
                 
-                # Criar um novo mapa e adicionar as localizações e shapefiles existentes
-                mapa = folium.Map(location=initial_coords, zoom_start=7)
-                
-                # Adicionar diferentes estilos de mapas
-                folium.TileLayer("OpenTopoMap", name="OpenTopoMap").add_to(mapa)
-                folium.TileLayer("Esri.WorldImagery", name="Esri World Imagery").add_to(mapa)
-                folium.TileLayer("Stadia.AlidadeSatellite", name="Stadia Alidade Satellite").add_to(mapa)
-                
-                # Adicionar as localizações existentes
-                for loc in locations:
-                    folium.Marker(loc).add_to(mapa)
-                
-                # Adicionar os shapefiles existentes
-                for shapefile in shapefiles:
-                    overlay = folium.FeatureGroup(name='Shapefile Overlay')
-                    folium.GeoJson(
-                        shapefile['data'],
-                        popup=folium.Popup(shapefile['info'], max_width=300) if shapefile['info'] else None
-                    ).add_to(overlay)
-                    overlay.add_to(mapa)
-                
-                # Adicionar controle de camadas
-                folium.LayerControl().add_to(mapa)
-                
-                # Salvar o mapa atualizado
-                mapa.save(os.path.join('static', 'map.html'))
+                # Atualizar o mapa
+                update_map()
                 
                 # Remover os arquivos temporários
                 os.remove(temp_zip)
@@ -131,6 +89,31 @@ def upload_file():
         else:
             return "Arquivo inválido. Por favor, envie um arquivo ZIP contendo um Shapefile.", 400
     return render_template('upload.html')
+
+def update_map():
+    global mapa, locations, shapefiles
+    mapa = folium.Map(location=initial_coords, zoom_start=7)
+    folium.TileLayer("Esri.WorldImagery", name="Satélite 1").add_to(mapa)
+    folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
+    for loc in locations:
+        popup_content = f"""
+        <div class='popup-content' style='max-width:300px; max-height:200px; overflow-y:auto;'>
+            <div class='popup-info'>{loc['info']}</div>
+        </div>
+        """
+        folium.Marker(
+            loc['coords'],
+            popup=folium.Popup(popup_content, max_width=300)
+        ).add_to(mapa)
+    for shapefile in shapefiles:
+        overlay = folium.FeatureGroup(name='Shapefile Overlay')
+        folium.GeoJson(
+            shapefile['data'],
+            popup=folium.Popup(shapefile['info'], max_width=300) if shapefile['info'] else None
+        ).add_to(overlay)
+        overlay.add_to(mapa)
+    folium.LayerControl().add_to(mapa)
+    mapa.save(os.path.join('static', 'map.html'))
 
 @app.route('/reset', methods=['POST'])
 def reset():
@@ -148,15 +131,7 @@ def delete_shapefile(index):
     if 0 <= index < len(shapefiles):
         del shapefiles[index]
         # Atualizar o mapa
-        mapa = folium.Map(location=initial_coords, zoom_start=7)
-        folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
-        for loc in locations:
-            folium.Marker(loc).add_to(mapa)
-        for geojson_data in shapefiles:
-            overlay = folium.FeatureGroup(name='Shapefile Overlay')
-            folium.GeoJson(geojson_data).add_to(overlay)
-            overlay.add_to(mapa)
-        mapa.save(os.path.join('static', 'map.html'))
+        update_map()
     return redirect(url_for('index'))
 
 @app.route('/delete_location/<int:index>', methods=['POST'])
@@ -165,23 +140,7 @@ def delete_location(index):
     if 0 <= index < len(locations):
         del locations[index]
         # Atualizar o mapa
-        mapa = folium.Map(location=initial_coords, zoom_start=7)
-        folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
-        for loc in locations:
-            popup_content = f"""
-            <div class='popup-content' style='max-width:300px; max-height:200px; overflow-y:auto;'>
-                <div class='popup-info'>{loc['info']}</div>
-            </div>
-            """
-            folium.Marker(
-                loc['coords'],  # Use loc['coords'] em vez de loc
-                popup=folium.Popup(popup_content, max_width=300)
-            ).add_to(mapa)
-        for geojson_data in shapefiles:
-            overlay = folium.FeatureGroup(name='Shapefile Overlay')
-            folium.GeoJson(geojson_data).add_to(overlay)
-            overlay.add_to(mapa)
-        mapa.save(os.path.join('static', 'map.html'))
+        update_map()
     return redirect(url_for('index'))
 
 @app.route('/static/<path:filename>')
