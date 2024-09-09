@@ -42,7 +42,7 @@ def index():
                 mapa.save(os.path.join('static', 'map.html'))
             except ValueError:
                 pass  # Lidar com erro de formato inválido
-    return render_template('index.html')
+    return render_template('index.html', shapefiles=shapefiles, locations=locations, enumerate=enumerate)
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
@@ -116,6 +116,40 @@ def reset():
     mapa = folium.Map(location=initial_coords, zoom_start=7)
     folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
     mapa.save(os.path.join('static', 'map.html'))
+    return redirect(url_for('index'))
+
+@app.route('/delete_shapefile/<int:index>', methods=['POST'])
+def delete_shapefile(index):
+    global mapa, shapefiles
+    if 0 <= index < len(shapefiles):
+        del shapefiles[index]
+        # Atualizar o mapa
+        mapa = folium.Map(location=initial_coords, zoom_start=7)
+        folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
+        for loc in locations:
+            folium.Marker(loc).add_to(mapa)
+        for geojson_data in shapefiles:
+            overlay = folium.FeatureGroup(name='Shapefile Overlay')
+            folium.GeoJson(geojson_data).add_to(overlay)
+            overlay.add_to(mapa)
+        mapa.save(os.path.join('static', 'map.html'))
+    return redirect(url_for('index'))
+
+@app.route('/delete_location/<int:index>', methods=['POST'])
+def delete_location(index):
+    global mapa, locations, shapefiles
+    if 0 <= index < len(locations):
+        del locations[index]
+        # Atualizar o mapa
+        mapa = folium.Map(location=initial_coords, zoom_start=7)
+        folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
+        for loc in locations:
+            folium.Marker(loc).add_to(mapa)
+        for geojson_data in shapefiles:
+            overlay = folium.FeatureGroup(name='Shapefile Overlay')
+            folium.GeoJson(geojson_data).add_to(overlay)
+            overlay.add_to(mapa)
+        mapa.save(os.path.join('static', 'map.html'))
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
