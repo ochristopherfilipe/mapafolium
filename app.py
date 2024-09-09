@@ -23,6 +23,21 @@ def index():
     global mapa, locations, shapefiles
     error_message = None
     if request.method == 'POST':
+        # Capturar o tipo selecionado pelo usuário
+        shapefile_type = request.form.get('type')
+        
+        # Definir a cor com base no tipo selecionado
+        color = 'blue'  # Cor padrão
+        if shapefile_type == 'ruas':
+            color = 'red'
+        elif shapefile_type == 'cidades':
+            color = 'green'
+        elif shapefile_type == 'areas_indigenas':
+            color = 'yellow'
+
+        # Processar o shapefile e outras informações...
+        shapefiles.append({'type': shapefile_type, 'color': color})
+
         coords = request.form.get('coords')
         info = request.form.get('info')
         if coords and info:
@@ -54,6 +69,17 @@ def upload_file():
             return "Nenhum arquivo enviado", 400
         file = request.files['file']
         info = request.form.get('info', '')  # Adicionar campo para informações com valor padrão
+        shapefile_type = request.form.get('type', 'default')  # Tipo de shapefile (ruas, cidades, etc.)
+        
+        # Definir a cor com base no tipo selecionado
+        color = 'blue'  # Cor padrão
+        if shapefile_type == 'ruas':
+            color = 'red'
+        elif shapefile_type == 'cidades':
+            color = 'green'
+        elif shapefile_type == 'areas_indigenas':
+            color = 'yellow'
+        
         if file.filename == '':
             return "Nenhum arquivo selecionado", 400
         if file and file.filename.endswith('.zip'):
@@ -72,7 +98,14 @@ def upload_file():
                 
                 # Converter para GeoJSON
                 geojson_data = gdf.to_json()
-                shapefiles.append({'data': geojson_data, 'info': markdown.markdown(info)})  # Adicionar informações
+                
+                # Adicionar o shapefile com o tipo e informação
+                shapefiles.append({
+                    'data': geojson_data,
+                    'info': markdown.markdown(info),
+                    'type': shapefile_type,  # Salvar o tipo de shapefile
+                    'color': color  # Salvar a cor do shapefile
+                })
                 
                 # Atualizar o mapa
                 update_map()
@@ -95,6 +128,10 @@ def update_map():
     mapa = folium.Map(location=initial_coords, zoom_start=7)
     folium.TileLayer("Esri.WorldImagery", name="Satélite 1").add_to(mapa)
     folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
+    
+    # Caminho do ícone personalizado
+    icon_path = os.path.join('static', 'images', 'iconcoord.png')
+    
     for loc in locations:
         popup_content = f"""
         <div class='popup-content' style='max-width:300px; max-height:200px; overflow-y:auto;'>
@@ -103,15 +140,24 @@ def update_map():
         """
         folium.Marker(
             loc['coords'],
-            popup=folium.Popup(popup_content, max_width=300)
+            popup=folium.Popup(popup_content, max_width=300),
+            icon=folium.CustomIcon(icon_path, icon_size=(30, 30))  # Usando o ícone personalizado
         ).add_to(mapa)
+    
     for shapefile in shapefiles:
         overlay = folium.FeatureGroup(name='Shapefile Overlay')
         folium.GeoJson(
             shapefile['data'],
+            style_function=lambda feature, color=shapefile['color']: {
+                'fillColor': color,
+                'color': color,
+                'weight': 2,
+                'fillOpacity': 0.5
+            },
             popup=folium.Popup(shapefile['info'], max_width=300) if shapefile['info'] else None
         ).add_to(overlay)
         overlay.add_to(mapa)
+    
     folium.LayerControl().add_to(mapa)
     mapa.save(os.path.join('static', 'map.html'))
 

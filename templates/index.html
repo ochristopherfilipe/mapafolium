@@ -125,13 +125,21 @@
             </form>
             <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
                 <label for="file">Enviar Shapefile (.zip):</label>
-                <input type="file" id="file" name="file">
+                <input type="file" id="file" name="file" required>
+                
+                <label for="type">Tipo de Shapefile:</label>
+                <select id="type" name="type" required>
+                    <option value="ruas">Ruas</option>
+                    <option value="cidades">Cidades</option>
+                    <option value="areas_indigenas">Áreas Indígenas</option>
+                </select>
+                
                 <br><br>
                 <label for="info">Informações adicionais (Markdown):</label>
                 <textarea name="info" id="info" rows="4" cols="50"></textarea>
                 <br><br>
-                <button type="submit">Upload</button> <!-- Alterado para <button> -->
-            </form>
+                <button type="submit">Upload</button>
+            </form>            
             <h2>Coordenadas</h2>
             <ul>
                 {% for index, location in enumerate(locations) %}
@@ -147,7 +155,7 @@
             <ul>
                 {% for index, shapefile in enumerate(shapefiles) %}
                     <li>
-                        Shapefile {{ index + 1 }}
+                        Shapefile {{ index + 1 }}: {{ shapefile['type'] }} 
                         <form action="{{ url_for('delete_shapefile', index=index) }}" method="post" style="display:inline;">
                             <button type="submit">Excluir</button>
                         </form>
