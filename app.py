@@ -20,29 +20,52 @@ shapefiles = []
 @app.route('/', methods=['GET', 'POST'])
 def index():
     global mapa, locations, shapefiles
+    error_message = None
     if request.method == 'POST':
         coords = request.form.get('coords')
-        if coords:
+        title = request.form.get('title')
+        subtitle = request.form.get('subtitle')
+        info = request.form.get('info')
+        if coords and title and subtitle and info:
             try:
                 lat, lon = map(float, coords.split(','))
-                # Adicionar a nova localização
-                location = (lat, lon)
-                locations.append(location)
-                # Criar um novo mapa e adicionar as localizações e shapefiles
-                mapa = folium.Map(location=initial_coords, zoom_start=7)
-                folium.TileLayer("Esri.WorldImagery", name="Satélite 1").add_to(mapa)
-                folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
-                for loc in locations:
-                    folium.Marker(loc).add_to(mapa)
-                for geojson_data in shapefiles:
-                    overlay = folium.FeatureGroup(name='Shapefile Overlay')
-                    folium.GeoJson(geojson_data).add_to(overlay)
-                    overlay.add_to(mapa)
-                # Salvar o mapa atualizado
-                mapa.save(os.path.join('static', 'map.html'))
+                # Verificar se a coordenada já existe
+                if any(loc['coords'] == (lat, lon) for loc in locations):
+                    error_message = "Coordenada já existe!"
+                else:
+                    # Adicionar a nova localização com informações
+                    location = {
+                        'coords': (lat, lon),
+                        'title': title,
+                        'subtitle': subtitle,
+                        'info': info
+                    }
+                    locations.append(location)
+                    # Criar um novo mapa e adicionar as localizações e shapefiles
+                    mapa = folium.Map(location=initial_coords, zoom_start=7)
+                    folium.TileLayer("Esri.WorldImagery", name="Satélite 1").add_to(mapa)
+                    folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
+                    for loc in locations:
+                        popup_content = f"""
+                        <div style='max-height:150px; max-width:200px; overflow-y:auto;'>
+                            <b>{loc['title']}</b><br>
+                            <i>{loc['subtitle']}</i><br>
+                            {loc['info']}
+                        </div>
+                        """
+                        folium.Marker(
+                            loc['coords'],
+                            popup=popup_content
+                        ).add_to(mapa)
+                    for geojson_data in shapefiles:
+                        overlay = folium.FeatureGroup(name='Shapefile Overlay')
+                        folium.GeoJson(geojson_data).add_to(overlay)
+                        overlay.add_to(mapa)
+                    # Salvar o mapa atualizado
+                    mapa.save(os.path.join('static', 'map.html'))
             except ValueError:
-                pass  # Lidar com erro de formato inválido
-    return render_template('index.html', shapefiles=shapefiles, locations=locations, enumerate=enumerate)
+                error_message = "Formato de coordenada inválido!"
+    return render_template('index.html', shapefiles=shapefiles, locations=locations, enumerate=enumerate, error_message=error_message)
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():

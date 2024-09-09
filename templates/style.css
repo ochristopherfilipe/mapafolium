@@ -1,0 +1,70 @@
+body {
+    display: flex;
+    height: 100vh; /* Altura total da janela */
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #f8f9fa;
+    padding: 15px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    overflow-y: auto; /* Adiciona rolagem se o conteúdo for maior que a altura da tela */
+}
+
+.content {
+    flex-grow: 1;
+    padding: 0; /* Remove o padding para que o mapa ocupe toda a área */
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar h1 {
+    font-size: 1.5em;
+    margin-bottom: 1em;
+}
+
+.sidebar form {
+    margin-bottom: 1em;
+}
+
+.sidebar label {
+    display: block;
+    margin-bottom: 0.5em;
+}
+
+.sidebar input[type="text"],
+.sidebar input[type="file"],
+.sidebar textarea {
+    width: 100%;
+    padding: 0.5em;
+    margin-bottom: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.sidebar button {
+    width: 100%;
+    padding: 0.5em;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 1em;
+}
+
+.sidebar button:hover {
+    background-color: #0056b3;
+}
+
+.error {
+    color: red;
+    margin-bottom: 1em;
+}
+
+iframe {
+    flex-grow: 1; /* Faz o iframe crescer para ocupar o espaço disponível */
+    border: none;
+}

@@ -66,9 +66,18 @@
 <body>
     <div class="sidebar">
         <h1>Mapa Interativo</h1>
+        {% if error_message %}
+            <div class="error">{{ error_message }}</div>
+        {% endif %}
         <form action="{{ url_for('index') }}" method="post">
             <label for="coords">Coordenadas (lat, lon):</label>
             <input type="text" id="coords" name="coords" placeholder="Ex: -23.5505, -46.6333">
+            <label for="title">Título:</label>
+            <input type="text" id="title" name="title" placeholder="Título">
+            <label for="subtitle">Subtítulo:</label>
+            <input type="text" id="subtitle" name="subtitle" placeholder="Subtítulo">
+            <label for="info">Informações:</label>
+            <textarea id="info" name="info" placeholder="Informações"></textarea>
             <button type="submit">Adicionar Localização</button>
         </form>
         <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
@@ -80,7 +89,7 @@
         <ul>
             {% for index, location in enumerate(locations) %}
                 <li>
-                    Coordenada {{ index + 1 }}: {{ location }}
+                    Coordenada {{ index + 1 }}: {{ location['coords'] }}
                     <form action="{{ url_for('delete_location', index=index) }}" method="post" style="display:inline;">
                         <button type="submit">Excluir</button>
                     </form>
