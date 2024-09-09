@@ -1,12 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 import folium
 import os
 import geopandas as gpd
 from werkzeug.utils import secure_filename
 import zipfile
 import json
+import markdown
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 # Coordenadas iniciais para centralizar o mapa
 initial_coords = [-5.315518848620957, -61.98811551121906]  # Brasília, Brasil
@@ -23,22 +24,20 @@ def index():
     error_message = None
     if request.method == 'POST':
         coords = request.form.get('coords')
-        title = request.form.get('title')
-        subtitle = request.form.get('subtitle')
         info = request.form.get('info')
-        if coords and title and subtitle and info:
+        if coords and info:
             try:
                 lat, lon = map(float, coords.split(','))
                 # Verificar se a coordenada já existe
                 if any(loc['coords'] == (lat, lon) for loc in locations):
-                    error_message = "Coordenada já existe!"
+                    error_message = "Essa coordenada já foi inserida"
                 else:
+                    # Converter Markdown para HTML
+                    info_html = markdown.markdown(info)
                     # Adicionar a nova localização com informações
                     location = {
                         'coords': (lat, lon),
-                        'title': title,
-                        'subtitle': subtitle,
-                        'info': info
+                        'info': info_html
                     }
                     locations.append(location)
                     # Criar um novo mapa e adicionar as localizações e shapefiles
@@ -47,15 +46,13 @@ def index():
                     folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
                     for loc in locations:
                         popup_content = f"""
-                        <div style='max-height:150px; max-width:200px; overflow-y:auto;'>
-                            <b>{loc['title']}</b><br>
-                            <i>{loc['subtitle']}</i><br>
-                            {loc['info']}
+                        <div class='popup-content' style='max-width:300px; max-height:200px; overflow-y:auto;'>
+                            <div class='popup-info'>{loc['info']}</div>
                         </div>
                         """
                         folium.Marker(
-                            loc['coords'],
-                            popup=popup_content
+                            loc['coords'],  # Use loc['coords'] em vez de loc
+                            popup=folium.Popup(popup_content, max_width=300)
                         ).add_to(mapa)
                     for geojson_data in shapefiles:
                         overlay = folium.FeatureGroup(name='Shapefile Overlay')
@@ -167,13 +164,25 @@ def delete_location(index):
         mapa = folium.Map(location=initial_coords, zoom_start=7)
         folium.TileLayer("Stadia.AlidadeSatellite").add_to(mapa)
         for loc in locations:
-            folium.Marker(loc).add_to(mapa)
+            popup_content = f"""
+            <div class='popup-content' style='max-width:300px; max-height:200px; overflow-y:auto;'>
+                <div class='popup-info'>{loc['info']}</div>
+            </div>
+            """
+            folium.Marker(
+                loc['coords'],  # Use loc['coords'] em vez de loc
+                popup=folium.Popup(popup_content, max_width=300)
+            ).add_to(mapa)
         for geojson_data in shapefiles:
             overlay = folium.FeatureGroup(name='Shapefile Overlay')
             folium.GeoJson(geojson_data).add_to(overlay)
             overlay.add_to(mapa)
         mapa.save(os.path.join('static', 'map.html'))
     return redirect(url_for('index'))
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(app.static_folder, filename)
 
 if __name__ == '__main__':
     # Garantir que o diretório 'static' exista
