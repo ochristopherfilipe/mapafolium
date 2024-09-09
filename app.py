@@ -71,6 +71,7 @@ def upload_file():
         if 'file' not in request.files:
             return "Nenhum arquivo enviado", 400
         file = request.files['file']
+        info = request.form.get('info', '')  # Adicionar campo para informações com valor padrão
         if file.filename == '':
             return "Nenhum arquivo selecionado", 400
         if file and file.filename.endswith('.zip'):
@@ -89,7 +90,7 @@ def upload_file():
                 
                 # Converter para GeoJSON
                 geojson_data = gdf.to_json()
-                shapefiles.append(geojson_data)
+                shapefiles.append({'data': geojson_data, 'info': markdown.markdown(info)})  # Adicionar informações
                 
                 # Criar um novo mapa e adicionar as localizações e shapefiles existentes
                 mapa = folium.Map(location=initial_coords, zoom_start=7)
@@ -104,9 +105,12 @@ def upload_file():
                     folium.Marker(loc).add_to(mapa)
                 
                 # Adicionar os shapefiles existentes
-                for geojson_data in shapefiles:
+                for shapefile in shapefiles:
                     overlay = folium.FeatureGroup(name='Shapefile Overlay')
-                    folium.GeoJson(geojson_data).add_to(overlay)
+                    folium.GeoJson(
+                        shapefile['data'],
+                        popup=folium.Popup(shapefile['info'], max_width=300) if shapefile['info'] else None
+                    ).add_to(overlay)
                     overlay.add_to(mapa)
                 
                 # Adicionar controle de camadas
