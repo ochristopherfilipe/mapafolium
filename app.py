@@ -29,11 +29,11 @@ def index():
         # Definir a cor com base no tipo selecionado
         color = 'blue'  # Cor padrão
         if shapefile_type == 'ruas':
-            color = 'red'
+            color = 'red'  # ou '#FF0000'
         elif shapefile_type == 'cidades':
-            color = 'green'
+            color = 'lightgreen'  # ou '#90EE90'
         elif shapefile_type == 'areas_indigenas':
-            color = 'yellow'
+            color = 'lightyellow'  # ou '#FFFFE0'
 
         # Processar o shapefile e outras informações...
         shapefiles.append({'type': shapefile_type, 'color': color})
@@ -74,11 +74,11 @@ def upload_file():
         # Definir a cor com base no tipo selecionado
         color = 'blue'  # Cor padrão
         if shapefile_type == 'ruas':
-            color = 'red'
+            color = 'red'  # ou '#FF0000'
         elif shapefile_type == 'cidades':
-            color = 'green'
+            color = 'lightgreen'  # ou '#90EE90'
         elif shapefile_type == 'areas_indigenas':
-            color = 'yellow'
+            color = 'lightyellow'  # ou '#FFFFE0'
         
         if file.filename == '':
             return "Nenhum arquivo selecionado", 400
@@ -199,4 +199,4 @@ if __name__ == '__main__':
         os.makedirs('static')
     # Salvar o mapa inicial
     mapa.save(os.path.join('static', 'map.html'))
-    app.run(debug=True)
+    app.run(debug=True) 
