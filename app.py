@@ -23,21 +23,6 @@ def index():
     global mapa, locations, shapefiles
     error_message = None
     if request.method == 'POST':
-        # Capturar o tipo selecionado pelo usuário
-        shapefile_type = request.form.get('type')
-        
-        # Definir a cor com base no tipo selecionado
-        color = 'blue'  # Cor padrão
-        if shapefile_type == 'ruas':
-            color = 'red'  # ou '#FF0000'
-        elif shapefile_type == 'cidades':
-            color = 'lightgreen'  # ou '#90EE90'
-        elif shapefile_type == 'areas_indigenas':
-            color = 'lightyellow'  # ou '#FFFFE0'
-
-        # Processar o shapefile e outras informações...
-        shapefiles.append({'type': shapefile_type, 'color': color})
-
         coords = request.form.get('coords')
         info = request.form.get('info')
         if coords and info:
@@ -59,6 +44,22 @@ def index():
                     update_map()
             except ValueError:
                 error_message = "Formato de coordenada inválido!"
+        else:
+            # Capturar o tipo selecionado pelo usuário
+            shapefile_type = request.form.get('type')
+            
+            # Definir a cor com base no tipo selecionado
+            color = 'blue'  # Cor padrão
+            if shapefile_type == 'ruas':
+                color = 'red'  # ou '#FF0000'
+            elif shapefile_type == 'cidades':
+                color = 'lightgreen'  # ou '#90EE90'
+            elif shapefile_type == 'areas_indigenas':
+                color = 'lightyellow'  # ou '#FFFFE0'
+
+            # Processar o shapefile e outras informações...
+            shapefiles.append({'type': shapefile_type, 'color': color})
+
     return render_template('index.html', shapefiles=shapefiles, locations=locations, enumerate=enumerate, error_message=error_message)
 
 @app.route('/upload', methods=['GET', 'POST'])
@@ -145,18 +146,22 @@ def update_map():
         ).add_to(mapa)
     
     for shapefile in shapefiles:
-        overlay = folium.FeatureGroup(name='Shapefile Overlay')
-        folium.GeoJson(
-            shapefile['data'],
-            style_function=lambda feature, color=shapefile['color']: {
-                'fillColor': color,
-                'color': color,
-                'weight': 2,
-                'fillOpacity': 0.5
-            },
-            popup=folium.Popup(shapefile['info'], max_width=300) if shapefile['info'] else None
-        ).add_to(overlay)
-        overlay.add_to(mapa)
+        if 'data' in shapefile:
+            overlay = folium.FeatureGroup(name='Shapefile Overlay')
+            folium.GeoJson(
+                shapefile['data'],
+                style_function=lambda feature, color=shapefile['color']: {
+                    'fillColor': color,
+                    'color': color,
+                    'weight': 2,
+                    'fillOpacity': 0.5
+                },
+                popup=folium.Popup(shapefile['info'], max_width=300) if shapefile['info'] else None
+            ).add_to(overlay)
+            overlay.add_to(mapa)
+        else:
+            # Lidar com a ausência da chave 'data'
+            print("A chave 'data' não está presente no shapefile")
     
     folium.LayerControl().add_to(mapa)
     mapa.save(os.path.join('static', 'map.html'))
