@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload KML</title>
+    <title>Upload de Shapefile</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,11 +23,15 @@
     </style>
 </head>
 <body>
-    <h1>Upload Arquivo KML</h1>
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <br>
-        <button type="submit">Upload</button>
+    <h1>Upload de Shapefile</h1>
+    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+        <label for="file">Selecione o arquivo ZIP contendo o Shapefile:</label>
+        <input type="file" name="file" id="file" required>
+        <br><br>
+        <label for="info">Informações adicionais (Markdown):</label>
+        <textarea name="info" id="info" rows="4" cols="50"></textarea>
+        <br><br>
+        <input type="submit" value="Upload">
     </form>
 </body>
 </html>

@@ -1,3 +1,0 @@
-Warning 1: The output driver does not seem to natively support Integer64 type for field objectid. Converting it to Real instead. -mapFieldType can be used to control field type conversion.
-Warning 1: The output driver does not natively support Date type for field created_da. Misconversion can happen. -mapFieldType can be used to control field type conversion.
-Warning 1: The output driver does not natively support Date type for field last_edi_1. Misconversion can happen. -mapFieldType can be used to control field type conversion.
