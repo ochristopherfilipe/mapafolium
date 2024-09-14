@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Localização</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <style>
+        html, body, .container-fluid, .row {
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <div class="col-md-3 bg-light p-4 border-right">
+            <h1 class="h3 mb-4">Editar Localização</h1>
+            {% if error_message %}
+                <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+            <form action="{{ url_for('edit_location', index=index) }}" method="post">
+                <div class="form-group">
+                    <label for="coords">Coordenadas (lat, lon):</label>
+                    <input type="text" id="coords" name="coords" class="form-control" value="{{ location['coords'][0] }}, {{ location['coords'][1] }}">
+                </div>
+                <div class="form-group">
+                    <label for="info">Informações:</label>
+                    <textarea id="info" name="info" class="form-control" rows="4">{{ location['info_md'] }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+        <div class="col-md-9 p-0">
+            <iframe src="{{ url_for('static', filename='map.html') }}" class="w-100 h-100 border-0"></iframe>
+        </div>
+    </div>
+</div>
+</body>
+</html>
